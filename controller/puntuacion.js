@@ -47,6 +47,7 @@ async function insert(req,res){
       //Async/await
   try{
     var puntuacion = new Puntuacion(req.body);
+    puntuacion._id = undefined;
     let puntuacionGuardada = await puntuacion.save()
       res.status(200).send({accion:'save', datos:puntuacionGuardada})
     }catch(err){

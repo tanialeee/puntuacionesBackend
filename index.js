@@ -30,12 +30,11 @@ app.use('/puntuacion', routerPuntuacion)
 });*/
 
 
-//TODO:quitar(pero me da pena :(    ).
-app.get('/', (req,res)=>{
-  res.status(200).send("Hola Tania");
-})
 
-//TODO: login
+
+//TODO: add usuarios(email,password,nombre,...)=> relaciones 1 a n
+//TODO: login(jwt) + login con google, login facebook, ...
+//TODO: validaciones
 
 
 /*mongoose.connect('mongodb://192.168.99.100:27017/scores',{useNewUrlParser: true,useUnifiedTopology: true },(err,res)=>{
