@@ -2,10 +2,12 @@ var express = require('express');
 var bodyParser= require('body-parser');
 var mongoose = require('mongoose');
 var routerPuntuacion = require('./routers/puntuacion')
-var app = express();
 var cors= require('cors')
 var morgan=require('morgan')
+var dotenv = require('dotenv')
 
+var app = express();
+dotenv.config();
 
 
 
@@ -52,8 +54,8 @@ app.get('/', (req,res)=>{
   
 })*/
 const run = async()=>{
-  await mongoose.connect('mongodb://192.168.99.100:27017/scores',{useNewUrlParser: true,useUnifiedTopology: true })
-  await app.listen(5200)
+  await mongoose.connect(process.env.URL_BASEDATOS,{useNewUrlParser: true,useUnifiedTopology: true })
+  await app.listen(process.env.PUERTO_SERVIDOR)
     console.log("Servidor y base de datos arrancados");
 
 }
