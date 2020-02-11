@@ -2,6 +2,7 @@ var express = require('express');
 var bodyParser= require('body-parser');
 var mongoose = require('mongoose');
 var routerPuntuacion = require('./routers/puntuacion')
+var routerUsuario = require('./routers/usuario')
 var cors= require('cors')
 var morgan=require('morgan')
 var dotenv = require('dotenv')
@@ -18,6 +19,7 @@ app.use(bodyParser.json())
 app.use( cors() )
 app.use(morgan('dev'))
 app.use('/puntuacion', routerPuntuacion)
+app.use('/usuario', routerUsuario)
 
 
 // Configurar cabeceras y cors
