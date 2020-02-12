@@ -1,7 +1,8 @@
-//var Puntuacion = require('../models/puntuacion')
-var Usuario = require('../models/usuario')
-var Joi = require('@hapi/joi')
-var bcrypt = require('bcrypt')
+var Puntuacion = require('../models/puntuacion')
+const Usuario = require('../models/usuario')
+const Joi = require('@hapi/joi')
+const bcrypt = require('bcrypt')
+const jwt =require('jsonwebtoken')
 
 const schemaRegistrar = Joi.object({
     nombre: Joi.string().alphanum().min(3).max(30).required(),
@@ -28,23 +29,31 @@ async function getAll(req,res){
      }
   }
 
-async function login(req,res){
+async function login(req,res){ //JWT Json Web Token
     // Validar todos los campos
     try{
         const {error,value} = await schemaLogin.validateAsync(req.body)
      }catch(err){
-        return res.status(404).send({accion:'login',mensaje:`Error en el usuario/contraseña` })
+        return res.status(404).send({accion:'login',mensaje:`Error 1 en el usuario/contraseña` })
      }
 
     // Comprobar si el usuario existe
     let usuarioEncontrado =await Usuario.findOne({email:req.body.email })
-    if(!usuarioEncontrado)return res.status(400).send({accion:'login',mensaje:`Error en el usuario/contraseña` });
+    if(!usuarioEncontrado)return res.status(400).send({accion:'login',mensaje:`Error 2 en el usuario/contraseña` });
 
     // Comprobar si el password coincide
      const passwordValidado = await bcrypt.compare(req.body.password,usuarioEncontrado.password)
-     if(!passwordValidado)return res.status(400).send({accion:'login',mensaje:`Error en el usuario/contraseña` });
+     if(!passwordValidado)return res.status(400).send({accion:'login',mensaje:`Error 3 en el usuario/contraseña` });
 
     // Crear y devolver el token
+    const configuracionToken = {
+      _id: usuarioEncontrado._id,
+      saludo: 'Hola',
+      exp: Math.floor(Date.now()/100)+(60*60) //1 hora
+    }
+     const token = jwt.sign(configuracionToken,process.env.TOKEN_SECRETO)
+     res.header("auth-token",token)
+     res.status(200).send(token)
 
 }
   
@@ -133,5 +142,27 @@ async function registrar(req,res){
     
   }
 
-  module.exports = {login,getAll,getById,registrar,remove,update}
+
+  async function insertaPuntuacion(req,res){
+    // parametro id = idUsuario
+    // Body = datos de la puntuacion
+   
+    // Obtener el id del usuario
+    let usuarioId= req.params.id;
+    // Creamos un objeto de tipo puntuacion(rellenado con el boody)
+    var nuevaPuntuacion = new Puntuacion (req.body);
+     // Guardar la puntuacion en la BD.
+     let puntuacionGuardada = await nuevaPuntuacion.save()
+    // Buscar el usuario por idUsuario
+    let usuarioEncontrado = await Usuario.findById(usuarioId)
+    // Asignar ( push ) la puntuacion al usuario
+    usuarioEncontrado.puntuaciones.push(puntuacionGuardada)
+    // Guardar el usuario.
+   await usuarioEncontrado.save()
+    //TODO: Esto lo hacemos mediante una transaccion para que se haga todo o no se haga nada.
+
+    res.status(200).json({accion:'save',datos:usuarioEncontrado})
+  }
+
+  module.exports = {login,getAll,getById,registrar,remove,update,insertaPuntuacion}
   
