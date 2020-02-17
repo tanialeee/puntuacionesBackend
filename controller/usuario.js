@@ -3,6 +3,7 @@ const Usuario = require('../models/usuario')
 const Joi = require('@hapi/joi')
 const bcrypt = require('bcrypt')
 const jwt =require('jsonwebtoken')
+const mongoose=require('mongoose')
 
 const schemaRegistrar = Joi.object({
     nombre: Joi.string().alphanum().min(3).max(30).required(),
@@ -142,10 +143,24 @@ async function registrar(req,res){
     
   }
 
+  async function getPuntuacionesUsuario(req,res){
+    try{
+    let usuarioEncontrado = await  Usuario.findById(req.params.id).populate('puntuaciones')
+        res.status(200).send({accion:'get one', usuarioEncontrado})
+    }catch(err){
+      res.status(500).send({accion:'get one', mensaje:`error al obtener las puntuaciones del usuario ${err}`})
+
+    }
+  }
+
 
   async function insertaPuntuacion(req,res){
     // parametro id = idUsuario
     // Body = datos de la puntuacion
+    const session = await mongoose.startSession()
+    try{
+    session.startTransaction()
+
    
     // Obtener el id del usuario
     let usuarioId= req.params.id;
@@ -161,8 +176,16 @@ async function registrar(req,res){
    await usuarioEncontrado.save()
     //TODO: Esto lo hacemos mediante una transaccion para que se haga todo o no se haga nada.
 
+   await session.commitTransaction()
     res.status(200).json({accion:'save',datos:usuarioEncontrado})
-  }
+  }catch(err){
+    await session.abortTransaction()
+    res.status(500).json({accion:'save',mensaje:'Error- al guardar la puntuacion: '+err})
+}finally{
+  session.endSession()
+}
 
-  module.exports = {login,getAll,getById,registrar,remove,update,insertaPuntuacion}
+}
+
+  module.exports = {login,getAll,getById,registrar,remove,update,insertaPuntuacion,getPuntuacionesUsuario}
   
